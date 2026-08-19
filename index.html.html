@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart To-Do — Marisha.S</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e14; --surface:#10151f; --surface-2:#161c29; --border:#232b3a;
+    --text:#e5e9f0; --text-muted:#8b93a7;
+    --accent:#5eead4; --accent-2:#c4b5fd; --danger:#f87171; --warn:#fbbf24;
+    --mono:'JetBrains Mono',monospace; --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.6;min-height:100vh;}
+  a{color:inherit;}
+  .wrap{max-width:760px;margin:0 auto;padding:60px 6vw 100px;}
+  header{margin-bottom:36px;}
+  .eyebrow{font-family:var(--mono);color:var(--accent);font-size:0.85rem;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .eyebrow::before{content:"//";color:var(--text-muted);}
+  h1{font-family:var(--display);font-size:clamp(1.9rem,4vw,2.6rem);font-weight:600;}
+  .sub{color:var(--text-muted);font-size:0.95rem;margin-top:6px;}
+  .back{font-family:var(--mono);font-size:0.82rem;color:var(--text-muted);display:inline-block;margin-bottom:20px;}
+  .back:hover{color:var(--accent);}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;}
+  .stat .num{font-family:var(--display);font-size:1.6rem;font-weight:600;color:var(--accent);}
+  .stat .lbl{font-family:var(--mono);font-size:0.72rem;color:var(--text-muted);margin-top:4px;}
+
+  .add-bar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+  input,select{
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    padding:12px 14px;color:var(--text);font-family:var(--body);font-size:0.92rem;
+  }
+  input:focus,select:focus{outline:none;border-color:var(--accent);}
+  #taskInput{flex:1;min-width:180px;}
+  .btn{
+    font-family:var(--mono);font-size:0.88rem;padding:12px 20px;border-radius:8px;border:1px solid var(--border);
+    background:var(--accent);color:#0a0e14;font-weight:500;cursor:pointer;transition:transform 0.15s;
+  }
+  .btn:hover{transform:translateY(-2px);}
+  .err-msg{color:var(--danger);font-family:var(--mono);font-size:0.78rem;min-height:16px;margin-bottom:10px;}
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;align-items:center;}
+  #searchInput{flex:1;min-width:160px;}
+  .filter-tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px;}
+  .filter-tabs button{
+    font-family:var(--mono);font-size:0.8rem;background:none;border:none;color:var(--text-muted);
+    padding:8px 14px;border-radius:6px;cursor:pointer;transition:background 0.2s,color 0.2s;
+  }
+  .filter-tabs button.active{background:var(--accent);color:#0a0e14;}
+
+  .task-list{display:flex;flex-direction:column;gap:10px;}
+  .task{
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:16px 18px;display:flex;align-items:flex-start;gap:14px;transition:border-color 0.2s;
+  }
+  .task:hover{border-color:var(--accent-2);}
+  .task.done{opacity:0.55;}
+  .task.done .task-text{text-decoration:line-through;}
+  .checkbox{
+    width:20px;height:20px;border:2px solid var(--border);border-radius:5px;flex-shrink:0;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:border-color 0.2s,background 0.2s;
+  }
+  .checkbox.checked{background:var(--accent);border-color:var(--accent);color:#0a0e14;font-size:0.75rem;}
+  .task-main{flex:1;min-width:0;}
+  .task-text{font-size:0.98rem;word-break:break-word;}
+  .task-meta{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+  .chip{font-family:var(--mono);font-size:0.7rem;padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--text-muted);}
+  .chip.priority-high{color:var(--danger);border-color:rgba(248,113,113,0.3);}
+  .chip.priority-medium{color:var(--warn);border-color:rgba(251,191,36,0.3);}
+  .chip.priority-low{color:var(--accent);border-color:rgba(94,234,212,0.3);}
+  .task-actions{display:flex;gap:8px;flex-shrink:0;}
+  .icon-btn{
+    background:none;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);
+    width:30px;height:30px;cursor:pointer;font-size:0.85rem;transition:border-color 0.2s,color 0.2s;
+  }
+  .icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .icon-btn.del:hover{border-color:var(--danger);color:var(--danger);}
+
+  .empty{
+    text-align:center;padding:60px 20px;color:var(--text-muted);font-family:var(--mono);font-size:0.9rem;
+    border:1px dashed var(--border);border-radius:12px;
+  }
+
+  select#prioritySelect, input#dueDate{ font-family:var(--mono); font-size:0.82rem; }
+
+  @media (max-width:600px){
+    .stats{grid-template-columns:repeat(3,1fr);}
+    .add-bar{flex-direction:column;}
+    .add-bar > *{width:100%;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="../CODSOFT_TASK1/index.html" class="back">← back to portfolio</a>
+  <header>
+    <div class="eyebrow">codsoft_task2</div>
+    <h1>Smart To-Do List</h1>
+    <p class="sub">Organize your day. Tasks are saved locally, so they'll still be here after you refresh.</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="totalCount">0</div><div class="lbl">total</div></div>
+    <div class="stat"><div class="num" id="pendingCount">0</div><div class="lbl">pending</div></div>
+    <div class="stat"><div class="num" id="doneCount">0</div><div class="lbl">completed</div></div>
+  </div>
+
+  <div class="add-bar">
+    <input type="text" id="taskInput" placeholder="What do you need to do?" maxlength="120">
+    <select id="prioritySelect">
+      <option value="low">Low</option>
+      <option value="medium" selected>Medium</option>
+      <option value="high">High</option>
+    </select>
+    <input type="date" id="dueDate">
+    <button class="btn" id="addBtn">Add Task</button>
+  </div>
+  <div class="err-msg" id="addErr"></div>
+
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Search tasks…">
+    <div class="filter-tabs">
+      <button data-filter="all" class="active">All</button>
+      <button data-filter="pending">Pending</button>
+      <button data-filter="done">Done</button>
+    </div>
+  </div>
+
+  <div class="task-list" id="taskList"></div>
+  <div class="empty" id="emptyState" style="display:none;">// no tasks match — add one above or clear your filters</div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'marisha_todo_tasks';
+  let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  let currentFilter = 'all';
+  let searchTerm = '';
+
+  const taskInput = document.getElementById('taskInput');
+  const prioritySelect = document.getElementById('prioritySelect');
+  const dueDate = document.getElementById('dueDate');
+  const addBtn = document.getElementById('addBtn');
+  const addErr = document.getElementById('addErr');
+  const taskList = document.getElementById('taskList');
+  const emptyState = document.getElementById('emptyState');
+  const searchInput = document.getElementById('searchInput');
+  const filterTabs = document.querySelectorAll('.filter-tabs button');
+
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }
+
+  function addTask(){
+    const text = taskInput.value.trim();
+    if(!text){ addErr.textContent = 'Please enter a task before adding.'; return; }
+    addErr.textContent = '';
+    tasks.unshift({
+      id: Date.now(),
+      text,
+      priority: prioritySelect.value,
+      due: dueDate.value,
+      done: false
+    });
+    taskInput.value = '';
+    dueDate.value = '';
+    save();
+    render();
+  }
+
+  function toggleDone(id){
+    tasks = tasks.map(t => t.id === id ? {...t, done: !t.done} : t);
+    save(); render();
+  }
+
+  function deleteTask(id){
+    tasks = tasks.filter(t => t.id !== id);
+    save(); render();
+  }
+
+  function editTask(id){
+    const task = tasks.find(t => t.id === id);
+    const newText = prompt('Edit task:', task.text);
+    if(newText !== null && newText.trim()){
+      tasks = tasks.map(t => t.id === id ? {...t, text: newText.trim()} : t);
+      save(); render();
+    }
+  }
+
+  function render(){
+    let filtered = tasks.filter(t => {
+      if(currentFilter === 'pending' && t.done) return false;
+      if(currentFilter === 'done' && !t.done) return false;
+      if(searchTerm && !t.text.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      return true;
+    });
+
+    taskList.innerHTML = '';
+    emptyState.style.display = filtered.length === 0 ? 'block' : 'none';
+
+    filtered.forEach(t => {
+      const el = document.createElement('div');
+      el.className = 'task' + (t.done ? ' done' : '');
+      el.innerHTML = `
+        <div class="checkbox ${t.done ? 'checked' : ''}" data-id="${t.id}" data-action="toggle">${t.done ? '✓' : ''}</div>
+        <div class="task-main">
+          <div class="task-text">${escapeHtml(t.text)}</div>
+          <div class="task-meta">
+            <span class="chip priority-${t.priority}">${t.priority}</span>
+            ${t.due ? `<span class="chip">due ${t.due}</span>` : ''}
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="icon-btn" data-id="${t.id}" data-action="edit" title="Edit">✎</button>
+          <button class="icon-btn del" data-id="${t.id}" data-action="delete" title="Delete">✕</button>
+        </div>
+      `;
+      taskList.appendChild(el);
+    });
+
+    document.getElementById('totalCount').textContent = tasks.length;
+    document.getElementById('pendingCount').textContent = tasks.filter(t => !t.done).length;
+    document.getElementById('doneCount').textContent = tasks.filter(t => t.done).length;
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  taskList.addEventListener('click', e => {
+    const target = e.target.closest('[data-action]');
+    if(!target) return;
+    const id = Number(target.dataset.id);
+    const action = target.dataset.action;
+    if(action === 'toggle') toggleDone(id);
+    if(action === 'delete') deleteTask(id);
+    if(action === 'edit') editTask(id);
+  });
+
+  addBtn.addEventListener('click', addTask);
+  taskInput.addEventListener('keydown', e => { if(e.key === 'Enter') addTask(); });
+
+  searchInput.addEventListener('input', e => { searchTerm = e.target.value; render(); });
+
+  filterTabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterTabs.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      render();
+    });
+  });
+
+  render();
+</script>
+</body>
+</html>
